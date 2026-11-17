@@ -1,0 +1,7 @@
+<div class="tools">
+  <a class="textlink" href="{% url 'contests:entry_edit' e.pk %}">編集</a>
+  <form class="inline" method="post" action="{% url 'contests:entry_delete' e.pk %}"
+        onsubmit="return confirm('「{{ e.word|escapejs }}」を削除しますか？')">
+    {% csrf_token %}<button class="textlink danger">削除</button>
+  </form>
+</div>

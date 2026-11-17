@@ -16,6 +16,11 @@ class Award(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def tier(self):
+        """表示用の格（1=金, 2=銀, 3=銅, 0=その他）。表示順から決める。"""
+        return self.order if 1 <= self.order <= 3 else 0
+
 
 class ThemeSong(models.Model):
     """期間ごとの大会テーマソング。"""

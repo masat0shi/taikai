@@ -1,17 +1,54 @@
 {% extends "contests/base.html" %}
 {% block title %}ランキング{% endblock %}
+{% block extra_style %}
+  .podium { display:grid; grid-template-columns:repeat(3,1fr); gap:.8rem; align-items:end; margin-bottom:2rem; }
+  .podium .p { text-align:center; border:1px solid var(--line); border-radius:var(--radius) var(--radius) 4px 4px;
+               background:linear-gradient(180deg,var(--surface-2),var(--surface)); padding:1.2rem .6rem; }
+  .podium .p1 { order:2; min-height:15rem; border-color:rgba(216,180,90,.45);
+                background:radial-gradient(260px 140px at 50% 0%, rgba(216,180,90,.18), transparent 70%), linear-gradient(180deg,var(--surface-2),var(--surface)); }
+  .podium .p2 { order:1; min-height:12rem; } .podium .p3 { order:3; min-height:10rem; }
+  .podium .rank { font-family:var(--latin); font-size:2.6rem; font-weight:600; line-height:1; }
+  .podium .p1 .rank { color:var(--gold); font-size:3.4rem; } .podium .p2 .rank { color:var(--silver); } .podium .p3 .rank { color:var(--bronze); }
+  .podium .name { font-family:var(--mincho); font-weight:800; font-size:clamp(1rem,3.5vw,1.4rem); margin:.7rem 0 .2rem; overflow-wrap:anywhere; }
+  .podium .count { color:var(--muted); font-size:.82rem; letter-spacing:.08em; }
+  .podium .count b { color:var(--ink); font-size:1.1rem; }
+  .num { font-family:var(--latin); font-size:1.15rem; }
+{% endblock %}
 {% block content %}
-<h1>受賞回数ランキング（言った人別）</h1>
-<div class="card">
-  <table>
-    <thead><tr><th>順位</th><th>言った人</th><th>受賞回数</th></tr></thead>
-    <tbody>
-    {% for s in speakers %}
-      <tr><td>{{ forloop.counter }}</td><td>{{ s.speaker }}</td><td>{{ s.total }}</td></tr>
-    {% empty %}
-      <tr><td colspan="3" class="muted">まだデータがありません。</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Hall of Fame</div>
+    <h1 class="page">受賞回数ランキング</h1>
+  </div>
 </div>
+
+{% if speakers %}
+  <div class="podium">
+    {% for s in speakers|slice:":3" %}
+      <div class="p p{{ forloop.counter }}">
+        <div class="rank">{{ forloop.counter }}</div>
+        <div class="name">{{ s.speaker }}</div>
+        <div class="count">受賞 <b>{{ s.total }}</b> 回{% if s.wins %} · 最高賞 {{ s.wins }}{% endif %}</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if speakers|length > 3 %}
+  <div class="card table-wrap">
+    <table>
+      <thead><tr><th>順位</th><th>言った人</th><th>受賞</th><th>最高賞</th></tr></thead>
+      <tbody>
+      {% for s in speakers|slice:"3:" %}
+        <tr><td class="num">{{ forloop.counter|add:3 }}</td><td>{{ s.speaker }}</td><td class="num">{{ s.total }}</td><td class="num">{{ s.wins }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+{% else %}
+  <div class="empty">
+    <p class="word">殿堂入り待ち</p>
+    <p>まだ受賞データがありません。</p>
+  </div>
+{% endif %}
 {% endblock %}

@@ -1,24 +1,55 @@
 {% extends "contests/base.html" %}
 {% block title %}テーマソング{% endblock %}
+{% block extra_style %}
+  .timeline { list-style:none; padding:0; margin:0; position:relative; }
+  .timeline::before { content:""; position:absolute; left:.45rem; top:.6rem; bottom:.6rem; width:1px; background:var(--line-2); }
+  .timeline li { position:relative; padding-left:2.2rem; }
+  .timeline li + li { margin-top:1.1rem; }
+  .timeline li::before { content:""; position:absolute; left:.1rem; top:1.6rem; width:.7rem; height:.7rem; transform:rotate(45deg);
+                         background:var(--bg); border:1px solid var(--gold); }
+  .timeline li.now::before { background:var(--gold); box-shadow:0 0 12px rgba(216,180,90,.6); }
+  .period { font-family:var(--latin); letter-spacing:.15em; color:var(--muted); font-size:.95rem; }
+  .now-tag { font-size:.7rem; letter-spacing:.2em; color:#1a1306; background:var(--gold); border-radius:999px; padding:.1rem .6rem; margin-left:.5rem; font-weight:700; }
+  .title { font-family:var(--mincho); font-weight:800; font-size:clamp(1.3rem,3.5vw,1.7rem); margin:.2rem 0 0; letter-spacing:.04em; }
+  .artist { color:var(--muted); }
+  .memo { color:var(--muted); font-size:.88rem; margin:.6rem 0 0; }
+{% endblock %}
 {% block content %}
-<div class="row">
-  <h1>大会テーマソング</h1>
-  <a class="btn spacer" href="{% url 'contests:song_create' %}">＋ テーマソングを登録</a>
-</div>
-{% for s in songs %}
-  <div class="card song">
-    <strong>{% if s.url %}<a href="{{ s.url }}" target="_blank" rel="noopener">{{ s }}</a>{% else %}{{ s }}{% endif %}</strong><br>
-    <span class="muted">{{ s.start_date|date:"Y/n/j" }} 〜 {% if s.end_date %}{{ s.end_date|date:"Y/n/j" }}{% else %}現在{% endif %}</span>
-    {% if s.note %}<p>{{ s.note|linebreaksbr }}</p>{% endif %}
-    <div class="row" style="margin-top:.5rem">
-      <a class="btn ghost" href="{% url 'contests:song_edit' s.pk %}">編集</a>
-      <form class="inline" method="post" action="{% url 'contests:song_delete' s.pk %}"
-            onsubmit="return confirm('このテーマソングを削除しますか？')">
-        {% csrf_token %}<button class="btn danger">削除</button>
-      </form>
-    </div>
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Theme Songs</div>
+    <h1 class="page">大会テーマソング</h1>
   </div>
-{% empty %}
-  <p class="muted">まだテーマソングが登録されていません。</p>
-{% endfor %}
+  <div class="actions"><a class="btn" href="{% url 'contests:song_create' %}">＋ テーマソングを登録</a></div>
+</div>
+
+{% if songs %}
+<ul class="timeline">
+  {% for s in songs %}
+  <li class="{% if not s.end_date or s.end_date >= today %}{% if s.start_date <= today %}now{% endif %}{% endif %}">
+    <div class="card">
+      <div class="period">{{ s.start_date|date:"Y.m.d" }} — {% if s.end_date %}{{ s.end_date|date:"Y.m.d" }}{% else %}NOW{% endif %}
+        {% if s.start_date <= today %}{% if not s.end_date or s.end_date >= today %}<span class="now-tag">NOW PLAYING</span>{% endif %}{% endif %}
+      </div>
+      <p class="title">{% if s.url %}<a href="{{ s.url }}" target="_blank" rel="noopener">♪ {{ s.title }}</a>{% else %}♪ {{ s.title }}{% endif %}</p>
+      {% if s.artist %}<div class="artist">{{ s.artist }}</div>{% endif %}
+      {% if s.note %}<p class="memo">{{ s.note|linebreaksbr }}</p>{% endif %}
+      <div class="tools" style="margin-top:.9rem">
+        <a class="textlink" href="{% url 'contests:song_edit' s.pk %}">編集</a>
+        <form class="inline" method="post" action="{% url 'contests:song_delete' s.pk %}"
+              onsubmit="return confirm('このテーマソングを削除しますか？')">
+          {% csrf_token %}<button class="textlink danger">削除</button>
+        </form>
+      </div>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+  <div class="empty">
+    <p class="word">♪</p>
+    <p>まだテーマソングが登録されていません。</p>
+    <a class="btn" href="{% url 'contests:song_create' %}">＋ テーマソングを登録</a>
+  </div>
+{% endif %}
 {% endblock %}

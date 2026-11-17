@@ -77,7 +77,7 @@ class TaikaiTests(TestCase):
         self.assertContains(self.client.get("/?q=エモ"), "エモい")
         self.assertNotContains(self.client.get("/?q=存在しない"), "それな")
         res = self.client.get(reverse("contests:ranking"))
-        self.assertEqual(res.context["speakers"][0], {"speaker": "田中", "total": 2})
+        self.assertEqual(res.context["speakers"][0], {"speaker": "田中", "total": 2, "wins": 1})
 
     @override_settings(MAX_IMAGE_SIZE=10)
     def test_oversized_image_rejected(self):

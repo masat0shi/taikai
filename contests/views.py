@@ -107,7 +107,9 @@ def entry_delete(request, pk):
 
 
 def song_list(request):
-    return render(request, "contests/song_list.html", {"songs": ThemeSong.objects.all()})
+    return render(
+        request, "contests/song_list.html", {"songs": ThemeSong.objects.all(), "today": datetime.date.today()}
+    )
 
 
 def song_create(request):
@@ -176,7 +178,7 @@ def ranking(request):
     """言った人ごとの受賞回数ランキング。"""
     speakers = (
         Entry.objects.values("speaker")
-        .annotate(total=Count("id"))
-        .order_by("-total", "speaker")
+        .annotate(total=Count("id"), wins=Count("id", filter=Q(award__order=1)))
+        .order_by("-total", "-wins", "speaker")
     )
     return render(request, "contests/ranking.html", {"speakers": speakers})

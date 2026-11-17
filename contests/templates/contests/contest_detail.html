@@ -1,43 +1,80 @@
 {% extends "contests/base.html" %}
 {% block title %}{{ contest.date|date:"Y-m-d" }}{% endblock %}
+{% block extra_style %}
+  .stage { text-align:center; padding:clamp(1rem,4vw,2rem) 0 2.5rem; }
+  .stage .d { font-family:var(--latin); font-size:clamp(1.1rem,3vw,1.4rem); letter-spacing:.3em; color:var(--muted); }
+  .stage h1 { font-family:var(--mincho); font-weight:800; font-size:clamp(1.2rem,3vw,1.5rem); letter-spacing:.3em; margin:.4rem 0 1.2rem; }
+  .stage .song { display:inline-flex; text-align:left; }
+  .stage .note-text { color:var(--muted); font-size:.9rem; max-width:36rem; margin:1.2rem auto 0; }
+  .stage .actions { display:flex; gap:.6rem; justify-content:center; flex-wrap:wrap; margin-top:1.6rem; }
+
+  .grand { position:relative; text-align:center; padding:clamp(2rem,6vw,3.5rem) clamp(1rem,4vw,2.5rem);
+           border:1px solid rgba(216,180,90,.35); border-radius:22px; margin-bottom:1.5rem;
+           background:radial-gradient(600px 260px at 50% 0%, rgba(216,180,90,.16), transparent 70%), linear-gradient(180deg,var(--surface-2),var(--surface)); }
+  .grand::before, .grand::after { content:"✦"; position:absolute; top:1.2rem; color:var(--gold-lo); font-size:.9rem; }
+  .grand::before { left:1.4rem; } .grand::after { right:1.4rem; }
+  .grand .award { font-size:1rem; letter-spacing:.5em; }
+  .grand .word { font-size:clamp(2.6rem,10vw,5.2rem); margin:.6rem 0 .5rem; }
+  .grand .speaker { font-size:1.05rem; }
+  .grand .desc { color:var(--ink); opacity:.85; max-width:34rem; margin:1.3rem auto 0; font-size:.95rem; }
+  .grand img { display:block; max-width:100%; max-height:420px; margin:1.6rem auto 0; border-radius:12px; border:1px solid var(--line-2); }
+  .grand .tools { justify-content:center; margin-top:1.4rem; }
+
+  .others { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:1rem; }
+  .others .card .word { font-size:clamp(1.5rem,4vw,1.9rem); margin:.5rem 0 .2rem; }
+  .others .desc { color:var(--muted); font-size:.88rem; margin:.8rem 0 0; }
+  .others img { display:block; width:100%; max-height:240px; object-fit:cover; border-radius:10px; margin-top:.9rem; border:1px solid var(--line); }
+  .others .tools { margin-top:1rem; }
+  .danger-zone { text-align:center; margin-top:3rem; }
+{% endblock %}
 {% block content %}
-<div class="row">
-  <h1>{{ contest.date|date:"Y年n月j日（D）" }} の流行語大会</h1>
-</div>
-<div class="row" style="margin-bottom:1rem">
-  <a class="btn" href="{% url 'contests:entry_create' contest.date|date:'Y-m-d' %}">＋ 流行語を登録</a>
-  <a class="btn ghost" href="{% url 'contests:contest_edit' contest.date|date:'Y-m-d' %}">大会を編集</a>
-  <form class="inline spacer" method="post" action="{% url 'contests:contest_delete' contest.date|date:'Y-m-d' %}"
-        onsubmit="return confirm('この大会と登録された流行語をすべて削除しますか？')">
-    {% csrf_token %}<button class="btn danger">大会を削除</button>
-  </form>
-</div>
-
-{% with song=contest.theme_song %}{% if song %}
-  <div class="card song">
-    <span class="muted">🎵 この日のテーマソング</span><br>
-    <strong>{% if song.url %}<a href="{{ song.url }}" target="_blank" rel="noopener">{{ song }}</a>{% else %}{{ song }}{% endif %}</strong>
+{% with d=contest.date|date:'Y-m-d' %}
+<section class="stage">
+  <div class="d">{{ contest.date|date:"Y.m.d" }} {{ contest.date|date:"D"|upper }}</div>
+  <h1>本日の流行語大賞</h1>
+  {% include "contests/_song.html" with song=contest.theme_song label="THEME SONG · この日のテーマソング" %}
+  {% if contest.note %}<p class="note-text">{{ contest.note|linebreaksbr }}</p>{% endif %}
+  <div class="actions">
+    <a class="btn" href="{% url 'contests:entry_create' d %}">＋ 受賞語を登録</a>
+    <a class="btn ghost" href="{% url 'contests:contest_edit' d %}">大会を編集</a>
   </div>
-{% endif %}{% endwith %}
-
-{% if contest.note %}<p>{{ contest.note|linebreaksbr }}</p>{% endif %}
+</section>
 
 {% for e in entries %}
-  <div class="card entry">
-    <span class="badge o{{ e.award.order }}">{{ e.award }}</span>
-    <div class="word">「{{ e.word }}」</div>
-    <div class="muted">言った人：{{ e.speaker }}</div>
-    {% if e.description %}<p>{{ e.description|linebreaksbr }}</p>{% endif %}
-    {% if e.image %}<a href="{{ e.image.url }}" target="_blank"><img src="{{ e.image.url }}" alt="{{ e.word }}"></a>{% endif %}
-    <div class="row" style="margin-top:.5rem">
-      <a class="btn ghost" href="{% url 'contests:entry_edit' e.pk %}">編集</a>
-      <form class="inline" method="post" action="{% url 'contests:entry_delete' e.pk %}"
-            onsubmit="return confirm('「{{ e.word|escapejs }}」を削除しますか？')">
-        {% csrf_token %}<button class="btn danger">削除</button>
-      </form>
-    </div>
-  </div>
+  {% if forloop.first %}
+  <article class="grand">
+    <span class="award t{{ e.award.tier }}">{{ e.award }}</span>
+    <p class="word"><span class="q">「</span><span class="gold-text">{{ e.word }}</span><span class="q">」</span></p>
+    <span class="speaker">{{ e.speaker }}</span>
+    {% if e.description %}<p class="desc">{{ e.description|linebreaksbr }}</p>{% endif %}
+    {% if e.image %}<a href="{{ e.image.url }}" target="_blank" rel="noopener"><img src="{{ e.image.url }}" alt="{{ e.word }}"></a>{% endif %}
+    {% include "contests/_entry_tools.html" %}
+  </article>
+  {% if entries|length > 1 %}<div class="others">{% endif %}
+  {% else %}
+  <article class="card">
+    <span class="award t{{ e.award.tier }}">{{ e.award }}</span>
+    <p class="word"><span class="q">「</span>{{ e.word }}<span class="q">」</span></p>
+    <span class="speaker">{{ e.speaker }}</span>
+    {% if e.description %}<p class="desc">{{ e.description|linebreaksbr }}</p>{% endif %}
+    {% if e.image %}<a href="{{ e.image.url }}" target="_blank" rel="noopener"><img src="{{ e.image.url }}" alt="{{ e.word }}"></a>{% endif %}
+    {% include "contests/_entry_tools.html" %}
+  </article>
+  {% endif %}
+  {% if forloop.last and entries|length > 1 %}</div>{% endif %}
 {% empty %}
-  <p class="muted">まだ流行語が登録されていません。</p>
+  <div class="empty">
+    <p class="word">発表待ち</p>
+    <p>まだ受賞語が登録されていません。</p>
+    <a class="btn" href="{% url 'contests:entry_create' d %}">＋ 受賞語を登録</a>
+  </div>
 {% endfor %}
+
+<div class="danger-zone">
+  <form class="inline" method="post" action="{% url 'contests:contest_delete' d %}"
+        onsubmit="return confirm('この大会と登録された流行語をすべて削除しますか？')">
+    {% csrf_token %}<button class="textlink danger">この大会を削除</button>
+  </form>
+</div>
+{% endwith %}
 {% endblock %}

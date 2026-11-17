@@ -1,36 +1,76 @@
 {% extends "contests/base.html" %}
 {% block title %}大会一覧{% endblock %}
+{% block extra_style %}
+  .search { display:flex; gap:.6rem; margin:0 0 2.2rem; }
+  .search input { border-radius:999px; padding-inline:1.2rem; }
+  .ceremony { display:block; color:inherit; position:relative; overflow:hidden; transition:border-color .2s, transform .2s; }
+  .ceremony:hover { color:inherit; border-color:var(--line-2); transform:translateY(-2px); }
+  .ceremony .date { display:flex; align-items:baseline; gap:.8rem; margin-bottom:1rem; }
+  .ceremony .date .d { font-family:var(--latin); font-size:1.5rem; font-weight:600; letter-spacing:.12em; color:var(--ink); }
+  .ceremony .date .w { font-family:var(--latin); letter-spacing:.3em; color:var(--gold); font-size:.85rem; }
+  .ceremony .headline .word { font-size:clamp(1.9rem,6vw,3rem); margin:.3rem 0 .1rem; }
+  .ceremony .rest { list-style:none; padding:0; margin:1.2rem 0 0; border-top:1px solid var(--line); }
+  .ceremony .rest li { display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; padding:.7rem 0 0; }
+  .ceremony .rest .w { font-family:var(--mincho); font-weight:700; font-size:1.1rem; }
+  .ceremony .note-text { color:var(--muted); font-size:.85rem; margin-top:.8rem; }
+  .ceremony .none { color:var(--dim); font-family:var(--mincho); }
+{% endblock %}
 {% block content %}
-{% if current_song %}
-  <div class="card song">
-    <span class="muted">🎵 現在のテーマソング</span><br>
-    <strong>{% if current_song.url %}<a href="{{ current_song.url }}" target="_blank" rel="noopener">{{ current_song }}</a>{% else %}{{ current_song }}{% endif %}</strong>
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Ceremonies</div>
+    <h1 class="page">歴代の流行語大賞</h1>
   </div>
-{% endif %}
-
-<div class="row">
-  <h1>大会一覧</h1>
-  <a class="btn spacer" href="{% url 'contests:contest_create' %}">＋ 大会を作成</a>
+  <div class="actions"><a class="btn" href="{% url 'contests:contest_create' %}">＋ 大会をひらく</a></div>
 </div>
 
-<form method="get" class="row" style="margin-bottom:1rem">
-  <input type="search" name="q" value="{{ q }}" placeholder="言葉・言った人・内容で検索" style="flex:1">
+{% if current_song %}<div style="margin-bottom:1.5rem">{% include "contests/_song.html" with song=current_song label="NOW PLAYING · 今期のテーマソング" %}</div>{% endif %}
+
+<form method="get" class="search">
+  <input type="search" name="q" value="{{ q }}" placeholder="言葉・言った人・内容でさがす">
   <button class="btn ghost">検索</button>
 </form>
 
+<div class="stack">
 {% for contest in contests %}
-  <div class="card">
-    <a href="{{ contest.get_absolute_url }}"><strong>{{ contest.date|date:"Y年n月j日（D）" }}</strong></a>
-    {% if contest.note %}<span class="muted">— {{ contest.note|truncatechars:40 }}</span>{% endif %}
-    <ul>
-      {% for e in contest.entries.all %}
-        <li><span class="badge o{{ e.award.order }}">{{ e.award }}</span> 「{{ e.word }}」 <span class="muted">— {{ e.speaker }}</span></li>
-      {% empty %}
-        <li class="muted">まだ流行語が登録されていません</li>
-      {% endfor %}
-    </ul>
-  </div>
+  {% with entries=contest.entries.all %}
+  <a class="card ceremony" href="{{ contest.get_absolute_url }}">
+    <div class="date">
+      <span class="d">{{ contest.date|date:"Y.m.d" }}</span>
+      <span class="w">{{ contest.date|date:"D" }}</span>
+    </div>
+    {% if entries %}
+      {% with top=entries.0 %}
+      <div class="headline">
+        <span class="award t{{ top.award.tier }}">{{ top.award }}</span>
+        <p class="word"><span class="q">「</span><span class="{% if top.award.tier == 1 %}gold-text{% endif %}">{{ top.word }}</span><span class="q">」</span></p>
+        <span class="speaker">{{ top.speaker }}</span>
+      </div>
+      {% endwith %}
+      {% if entries|length > 1 %}
+      <ul class="rest">
+        {% for e in entries|slice:"1:" %}
+          <li><span class="award t{{ e.award.tier }}">{{ e.award }}</span><span class="w">「{{ e.word }}」</span><span class="speaker">{{ e.speaker }}</span></li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    {% else %}
+      <p class="none">まだ受賞語は発表されていません</p>
+    {% endif %}
+    {% if contest.note %}<p class="note-text">{{ contest.note|truncatechars:60 }}</p>{% endif %}
+  </a>
+  {% endwith %}
 {% empty %}
-  <p class="muted">{% if q %}「{{ q }}」に一致する大会はありません。{% else %}まだ大会がありません。「大会を作成」から始めましょう。{% endif %}</p>
+  <div class="empty">
+    {% if q %}
+      <p class="word">「{{ q }}」</p>
+      <p>に一致する流行語は見つかりませんでした。</p>
+    {% else %}
+      <p class="word">開幕前</p>
+      <p>まだ大会がありません。最初の大会をひらきましょう。</p>
+      <a class="btn" href="{% url 'contests:contest_create' %}">＋ 大会をひらく</a>
+    {% endif %}
+  </div>
 {% endfor %}
+</div>
 {% endblock %}

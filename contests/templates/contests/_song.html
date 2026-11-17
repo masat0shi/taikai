@@ -1,0 +1,10 @@
+{% if song %}
+<div class="song">
+  <span class="note">♪</span>
+  <span>
+    <span class="label">{{ label|default:"THEME SONG" }}</span>
+    {% if song.url %}<a href="{{ song.url }}" target="_blank" rel="noopener"><strong>{{ song.title }}</strong></a>{% else %}<strong>{{ song.title }}</strong>{% endif %}
+    {% if song.artist %}<span class="speaker" style="margin-left:.4rem">{{ song.artist }}</span>{% endif %}
+  </span>
+</div>
+{% endif %}
