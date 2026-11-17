@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b0a08">
-  <title>{% block title %}taikai{% endblock %} | TAIKAI 流行語大賞</title>
+  <title>{% block title %}taikai{% endblock %} | TAIKAI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
@@ -38,7 +38,6 @@
     .brand .mark { font-family:var(--latin); font-weight:600; font-size:1.45rem; letter-spacing:.32em;
                    background:linear-gradient(180deg,var(--gold-hi),var(--gold) 55%,var(--gold-lo));
                    -webkit-background-clip:text; background-clip:text; color:transparent; }
-    .brand .sub { font-family:var(--mincho); font-size:.78rem; color:var(--muted); letter-spacing:.2em; }
     nav.main { display:flex; gap:1.3rem; flex-wrap:wrap; font-size:.88rem; }
     nav.main a { color:var(--muted); letter-spacing:.08em; padding-block:.2rem; border-bottom:1px solid transparent; }
     nav.main a:hover, nav.main a.on { color:var(--ink); border-bottom-color:var(--gold); }
@@ -132,7 +131,7 @@
 <body>
 <header class="site">
   <div class="wrap">
-    <a class="brand" href="{% url 'contests:contest_list' %}"><span class="mark">TAIKAI</span><span class="sub">流行語大賞</span></a>
+    <a class="brand" href="{% url 'contests:contest_list' %}"><span class="mark">TAIKAI</span></a>
     {% with u=request.resolver_match.url_name %}
     <nav class="main">
       <a href="{% url 'contests:contest_list' %}" class="{% if u == 'contest_list' or 'contest_' in u or 'entry_' in u %}on{% endif %}">大会</a>
@@ -147,6 +146,6 @@
   {% if messages %}<ul class="messages">{% for m in messages %}<li class="{{ m.tags }}">{{ m }}</li>{% endfor %}</ul>{% endif %}
   {% block content %}{% endblock %}
 </main>
-<footer class="site">TAIKAI · BUZZWORD AWARDS</footer>
+<footer class="site">TAIKAI</footer>
 </body>
 </html>

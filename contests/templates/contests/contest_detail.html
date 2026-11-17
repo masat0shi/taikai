@@ -2,8 +2,8 @@
 {% block title %}{{ contest.date|date:"Y-m-d" }}{% endblock %}
 {% block extra_style %}
   .stage { text-align:center; padding:clamp(1rem,4vw,2rem) 0 2.5rem; }
-  .stage .d { font-family:var(--latin); font-size:clamp(1.1rem,3vw,1.4rem); letter-spacing:.3em; color:var(--muted); }
-  .stage h1 { font-family:var(--mincho); font-weight:800; font-size:clamp(1.2rem,3vw,1.5rem); letter-spacing:.3em; margin:.4rem 0 1.2rem; }
+  .stage .d { font-family:var(--latin); font-weight:600; font-size:clamp(1.8rem,5vw,2.6rem); letter-spacing:.2em; margin:0 0 1.3rem; line-height:1.2; }
+  .stage .d span { font-family:var(--mincho); font-size:.5em; color:var(--gold); letter-spacing:.1em; vertical-align:middle; }
   .stage .song { display:inline-flex; text-align:left; }
   .stage .note-text { color:var(--muted); font-size:.9rem; max-width:36rem; margin:1.2rem auto 0; }
   .stage .actions { display:flex; gap:.6rem; justify-content:center; flex-wrap:wrap; margin-top:1.6rem; }
@@ -30,8 +30,7 @@
 {% block content %}
 {% with d=contest.date|date:'Y-m-d' %}
 <section class="stage">
-  <div class="d">{{ contest.date|date:"Y.m.d" }} {{ contest.date|date:"D"|upper }}</div>
-  <h1>本日の流行語大賞</h1>
+  <h1 class="d">{{ contest.date|date:"Y.m.d" }} <span>{{ contest.date|date:"D" }}</span></h1>
   {% include "contests/_song.html" with song=contest.theme_song label="THEME SONG · この日のテーマソング" %}
   {% if contest.note %}<p class="note-text">{{ contest.note|linebreaksbr }}</p>{% endif %}
   <div class="actions">
