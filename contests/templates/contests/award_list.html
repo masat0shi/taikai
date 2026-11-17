@@ -1,0 +1,33 @@
+{% extends "contests/base.html" %}
+{% block title %}賞の設定{% endblock %}
+{% block content %}
+<div class="row">
+  <h1>賞の設定</h1>
+  <a class="btn spacer" href="{% url 'contests:award_create' %}">＋ 賞を追加</a>
+</div>
+<p class="muted">表示順が小さい賞ほど上に表示されます。「使用中」を外すと、新しく登録するときの選択肢から消えます（過去の記録はそのまま残ります）。</p>
+<div class="card">
+  <table>
+    <thead><tr><th>表示順</th><th>賞</th><th>使用中</th><th>受賞数</th><th></th></tr></thead>
+    <tbody>
+    {% for a in awards %}
+      <tr>
+        <td>{{ a.order }}</td>
+        <td><span class="badge o{{ a.order }}">{{ a.name }}</span></td>
+        <td>{% if a.is_active %}✓{% else %}<span class="muted">停止中</span>{% endif %}</td>
+        <td>{{ a.entry_count }}</td>
+        <td class="row">
+          <a class="btn ghost" href="{% url 'contests:award_edit' a.pk %}">編集</a>
+          {% if not a.entry_count %}
+          <form class="inline" method="post" action="{% url 'contests:award_delete' a.pk %}"
+                onsubmit="return confirm('賞「{{ a.name|escapejs }}」を削除しますか？')">
+            {% csrf_token %}<button class="btn danger">削除</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -6,6 +6,12 @@ from .models import Award, Contest, Entry, ThemeSong
 DATE_INPUT = forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
 
 
+class AwardForm(forms.ModelForm):
+    class Meta:
+        model = Award
+        fields = ["name", "order", "is_active"]
+
+
 class ContestForm(forms.ModelForm):
     class Meta:
         model = Contest

@@ -4,10 +4,10 @@
 
 ## 機能
 - 日付ごとの「大会」に、受賞した流行語（言葉・言った人・内容・画像）を登録
-- 賞は 優勝 / 準優勝 / 審査員特別賞 を初期登録。管理画面（/admin）の「賞」から追加・並べ替え・使用停止ができる
+- 賞は 優勝 / 準優勝 / 審査員特別賞 を初期登録。「賞の設定」ページから追加・並べ替え・使用停止ができる
 - 期間ごとの大会テーマソング（開催日に合う曲を自動表示）
 - キーワード検索、言った人別の受賞回数ランキング
-- ログインなし（URL を知っている人は誰でも登録・編集できる）。管理画面のみ管理者アカウントが必要
+- ログインなし・管理画面なし（URL を知っている人は誰でも登録・編集できる）
 
 ## 構成
 | 用途 | ローカル | 本番 |
@@ -23,7 +23,6 @@
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python manage.py migrate
-.venv/bin/python manage.py createsuperuser
 .venv/bin/python manage.py runserver
 ```
 
@@ -40,7 +39,6 @@ python3 -m venv .venv
 ```bash
 cp .env.example .env   # 値を記入
 .venv/bin/python manage.py migrate
-.venv/bin/python manage.py createsuperuser
 ```
 モデルを変更したときも、デプロイ前に同じく `migrate` を実行する。
 

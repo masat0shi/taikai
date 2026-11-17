@@ -48,7 +48,6 @@ if not DEBUG:
 
 INSTALLED_APPS = [
     'contests',
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -138,7 +137,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
-# collectstatic なしで管理画面の CSS 等を配信する（Vercel のビルド手順を簡単にするため）
+# collectstatic なしで静的ファイルを配信する（Vercel のビルド手順を簡単にするため）
 WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL = 'media/'

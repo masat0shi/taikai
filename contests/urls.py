@@ -17,5 +17,9 @@ urlpatterns = [
     path("songs/new/", views.song_create, name="song_create"),
     path("songs/<int:pk>/edit/", views.song_edit, name="song_edit"),
     path("songs/<int:pk>/delete/", views.song_delete, name="song_delete"),
+    path("awards/", views.award_list, name="award_list"),
+    path("awards/new/", views.award_create, name="award_create"),
+    path("awards/<int:pk>/edit/", views.award_edit, name="award_edit"),
+    path("awards/<int:pk>/delete/", views.award_delete, name="award_delete"),
     path("ranking/", views.ranking, name="ranking"),
 ]

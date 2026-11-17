@@ -1,13 +1,13 @@
 import datetime
 
 from django.contrib import messages
-from django.db.models import Count, Q
+from django.db.models import Count, Max, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import ContestForm, EntryForm, ThemeSongForm
-from .models import Contest, Entry, ThemeSong
+from .forms import AwardForm, ContestForm, EntryForm, ThemeSongForm
+from .models import Award, Contest, Entry, ThemeSong
 
 
 def _contest_by_date(date_str):
@@ -134,6 +134,42 @@ def song_delete(request, pk):
     get_object_or_404(ThemeSong, pk=pk).delete()
     messages.success(request, "テーマソングを削除しました。")
     return redirect("contests:song_list")
+
+
+def award_list(request):
+    awards = Award.objects.annotate(entry_count=Count("entries"))
+    return render(request, "contests/award_list.html", {"awards": awards})
+
+
+def award_create(request):
+    next_order = (Award.objects.aggregate(m=Max("order"))["m"] or 0) + 1
+    form = AwardForm(request.POST or None, initial={"order": next_order})
+    if request.method == "POST" and form.is_valid():
+        award = form.save()
+        messages.success(request, f"賞「{award}」を追加しました。")
+        return redirect("contests:award_list")
+    return render(request, "contests/form.html", {"form": form, "title": "賞を追加"})
+
+
+def award_edit(request, pk):
+    award = get_object_or_404(Award, pk=pk)
+    form = AwardForm(request.POST or None, instance=award)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, f"賞「{award}」を更新しました。")
+        return redirect("contests:award_list")
+    return render(request, "contests/form.html", {"form": form, "title": "賞を編集"})
+
+
+@require_POST
+def award_delete(request, pk):
+    award = get_object_or_404(Award, pk=pk)
+    if award.entries.exists():
+        messages.error(request, f"賞「{award}」は流行語で使われているため削除できません。代わりに「使用中」を外してください。")
+    else:
+        award.delete()
+        messages.success(request, f"賞「{award}」を削除しました。")
+    return redirect("contests:award_list")
 
 
 def ranking(request):
