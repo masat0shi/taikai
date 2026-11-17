@@ -77,7 +77,7 @@ class TaikaiTests(TestCase):
         self.assertContains(self.client.get("/?q=エモ"), "エモい")
         self.assertNotContains(self.client.get("/?q=存在しない"), "それな")
         res = self.client.get(reverse("contests:ranking"))
-        self.assertEqual(res.context["speakers"][0], {"speaker": "田中", "total": 2, "wins": 1})
+        self.assertEqual(res.context["speakers"][0], {"speaker": "田中", "total": 2, "wins": 1, "jacks": 1, "hof": False})
 
     @override_settings(MAX_IMAGE_SIZE=10)
     def test_oversized_image_rejected(self):
@@ -122,3 +122,96 @@ class TaikaiTests(TestCase):
 
     def test_bad_date_is_404(self):
         self.assertEqual(self.client.get("/contests/not-a-date/").status_code, 404)
+
+
+class HallOfFameTests(TestCase):
+    def setUp(self):
+        self.win = Award.objects.get(name="優勝")
+        self.second = Award.objects.get(name="準優勝")
+        self.special = Award.objects.get(name="審査員特別賞")
+
+    def contest(self, day, *entries):
+        c = Contest.objects.create(date=datetime.date(2026, 11, day))
+        for award, speaker in entries:
+            Entry.objects.create(contest=c, award=award, word="w", speaker=speaker)
+        return c
+
+    def test_jack_requires_win_and_runner_up_in_same_contest(self):
+        from . import hall
+
+        self.contest(1, (self.win, "田中"), (self.second, "田中"))          # ジャック
+        self.contest(2, (self.win, "田中"), (self.second, "佐藤"))          # 別人
+        self.contest(3, (self.win, "佐藤"), (self.special, "佐藤"))         # 審査員特別賞はカウントしない
+        self.contest(4, (self.second, "鈴木"))
+        self.contest(5, (self.win, "鈴木"))                                 # 別の大会
+        self.assertEqual(hall.all_jacks(), {"田中": [datetime.date(2026, 11, 1)]})
+        self.assertEqual(hall.hall_of_fame(), [])
+
+    def test_two_jacks_enters_hall_of_fame(self):
+        from . import hall
+
+        self.contest(1, (self.win, "田中"), (self.second, "田中"))
+        self.contest(3, (self.win, "佐藤"), (self.second, "佐藤"))
+        self.contest(5, (self.win, " 田中 "), (self.second, "田中"))       # 前後の空白は無視
+        self.contest(9, (self.win, "田中"), (self.second, "田中"))          # 3回目
+        members = hall.hall_of_fame()
+        self.assertEqual(len(members), 1)
+        self.assertEqual(members[0]["speaker"], "田中")
+        self.assertEqual(members[0]["inducted_on"], datetime.date(2026, 11, 5))
+        self.assertEqual(len(members[0]["jacks"]), 3)
+
+    def test_pages_show_jack_and_induction(self):
+        self.contest(1, (self.win, "田中"), (self.second, "田中"))
+        self.contest(5, (self.win, "田中"), (self.second, "田中"), (self.special, "佐藤"))
+
+        res = self.client.get("/contests/2026-11-01/")
+        self.assertContains(res, "JACK!")
+        self.assertNotContains(res, "殿堂入り！")
+
+        res = self.client.get("/contests/2026-11-05/")
+        self.assertContains(res, "田中 殿堂入り！")
+
+        res = self.client.get(reverse("contests:hall_of_fame"))
+        self.assertEqual([m["speaker"] for m in res.context["members"]], ["田中"])
+
+        res = self.client.get(reverse("contests:ranking"))
+        tanaka = next(s for s in res.context["speakers"] if s["speaker"] == "田中")
+        self.assertEqual((tanaka["jacks"], tanaka["hof"]), (2, True))
+
+        self.assertContains(self.client.get("/"), "JACK · 田中")
+
+    def test_contender_shown_with_one_jack(self):
+        self.contest(1, (self.win, "佐藤"), (self.second, "佐藤"))
+        res = self.client.get(reverse("contests:hall_of_fame"))
+        self.assertEqual(res.context["members"], [])
+        self.assertEqual(res.context["contenders"][0]["speaker"], "佐藤")
+        self.assertContains(res, "あと 1 回")
+
+    def test_hall_of_fame_member_cannot_win_later(self):
+        self.contest(1, (self.win, "田中"), (self.second, "田中"))
+        self.contest(5, (self.win, "田中"), (self.second, "田中"))  # ここで殿堂入り
+        later = self.contest(8)
+        url = reverse("contests:entry_create", args=[later.date.isoformat()])
+
+        res = self.client.get(url)
+        self.assertContains(res, "殿堂入りのため受賞できない人：田中")
+
+        res = self.client.post(url, {"award": self.special.pk, "word": "w", "speaker": " 田中 "})
+        self.assertContains(res, "2026.11.05 に殿堂入りしているため")
+        self.assertFalse(later.entries.exists())
+
+        # 他の人は登録できる
+        res = self.client.post(url, {"award": self.win.pk, "word": "w", "speaker": "佐藤"})
+        self.assertEqual(res.status_code, 302)
+
+    def test_hall_of_fame_member_entries_before_induction_still_editable(self):
+        self.contest(1, (self.win, "田中"), (self.second, "田中"))
+        self.contest(5, (self.win, "田中"), (self.second, "田中"))
+        entry = Entry.objects.filter(contest__date=datetime.date(2026, 11, 5), award=self.win).get()
+        res = self.client.post(
+            reverse("contests:entry_edit", args=[entry.pk]),
+            {"award": self.win.pk, "word": "修正後", "speaker": "田中"},
+        )
+        self.assertEqual(res.status_code, 302)
+        entry.refresh_from_db()
+        self.assertEqual(entry.word, "修正後")

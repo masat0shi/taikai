@@ -17,7 +17,7 @@
 {% block content %}
 <div class="page-head">
   <div>
-    <div class="eyebrow">Hall of Fame</div>
+    <div class="eyebrow">Ranking</div>
     <h1 class="page">受賞回数ランキング</h1>
   </div>
 </div>
@@ -28,7 +28,8 @@
       <div class="p p{{ forloop.counter }}">
         <div class="rank">{{ forloop.counter }}</div>
         <div class="name">{{ s.speaker }}</div>
-        <div class="count">受賞 <b>{{ s.total }}</b> 回{% if s.wins %} · 最高賞 {{ s.wins }}{% endif %}</div>
+        <div class="count">受賞 <b>{{ s.total }}</b> 回{% if s.wins %} · 優勝 {{ s.wins }}{% endif %}</div>
+        {% if s.hof %}<div style="margin-top:.5rem"><span class="tag hof">♛ 殿堂</span></div>{% elif s.jacks %}<div style="margin-top:.5rem"><span class="tag jack">JACK ×{{ s.jacks }}</span></div>{% endif %}
       </div>
     {% endfor %}
   </div>
@@ -36,10 +37,10 @@
   {% if speakers|length > 3 %}
   <div class="card table-wrap">
     <table>
-      <thead><tr><th>順位</th><th>言った人</th><th>受賞</th><th>最高賞</th></tr></thead>
+      <thead><tr><th>順位</th><th>言った人</th><th>受賞</th><th>優勝</th><th>ジャック</th></tr></thead>
       <tbody>
       {% for s in speakers|slice:"3:" %}
-        <tr><td class="num">{{ forloop.counter|add:3 }}</td><td>{{ s.speaker }}</td><td class="num">{{ s.total }}</td><td class="num">{{ s.wins }}</td></tr>
+        <tr><td class="num">{{ forloop.counter|add:3 }}</td><td>{{ s.speaker }} {% if s.hof %}<span class="tag hof">♛ 殿堂</span>{% endif %}</td><td class="num">{{ s.total }}</td><td class="num">{{ s.wins }}</td><td class="num">{{ s.jacks }}</td></tr>
       {% endfor %}
       </tbody>
     </table>
@@ -47,7 +48,7 @@
   {% endif %}
 {% else %}
   <div class="empty">
-    <p class="word">殿堂入り待ち</p>
+    <p class="word">集計待ち</p>
     <p>まだ受賞データがありません。</p>
   </div>
 {% endif %}

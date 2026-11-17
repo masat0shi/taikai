@@ -1,0 +1,67 @@
+{% extends "contests/base.html" %}
+{% block extra_style %}
+  .rule { display:flex; gap:1rem; flex-wrap:wrap; align-items:center; justify-content:center; text-align:center;
+          border:1px solid var(--line); border-radius:999px; padding:.8rem 1.4rem; margin:0 auto 2.5rem; width:fit-content; max-width:100%;
+          color:var(--muted); font-size:.88rem; }
+  .rule b { color:var(--gold-hi); font-family:var(--mincho); }
+  .plaques { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr)); gap:1.2rem; }
+  .plaque { position:relative; text-align:center; padding:2.2rem 1.4rem 1.8rem; border-radius:18px;
+            border:1px solid rgba(216,180,90,.5);
+            background:radial-gradient(320px 160px at 50% 0%, rgba(216,180,90,.2), transparent 70%), linear-gradient(180deg,var(--surface-2),var(--surface));
+            box-shadow:inset 0 0 0 6px var(--bg), inset 0 0 0 7px rgba(216,180,90,.25); }
+  .plaque .crown { font-size:1.6rem; line-height:1; color:var(--gold); }
+  .plaque .label { font-family:var(--latin); letter-spacing:.4em; font-size:.8rem; color:var(--gold); margin-top:.6rem; }
+  .plaque .name { font-family:var(--mincho); font-weight:800; font-size:clamp(1.8rem,6vw,2.4rem); margin:.4rem 0 .3rem; overflow-wrap:anywhere; }
+  .plaque .since { color:var(--muted); font-size:.85rem; letter-spacing:.06em; }
+  .plaque .jacks { list-style:none; padding:0; margin:1.1rem 0 0; display:flex; gap:.5rem; justify-content:center; flex-wrap:wrap; }
+  .plaque .jacks a { display:inline-block; font-family:var(--latin); font-size:.85rem; letter-spacing:.08em; color:var(--ink);
+                     border:1px solid var(--line-2); border-radius:999px; padding:.15rem .7rem; }
+  .plaque .jacks a:hover { border-color:var(--gold); color:var(--gold-hi); }
+  h2.sec { font-family:var(--mincho); font-weight:800; font-size:1.2rem; letter-spacing:.12em; margin:3rem 0 1rem; }
+  .contender { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+  .contender .n { font-family:var(--mincho); font-weight:800; font-size:1.2rem; }
+  .contender .left { margin-left:auto; color:var(--gold); font-size:.85rem; letter-spacing:.08em; }
+{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <div class="eyebrow">Hall of Fame</div>
+    <h1 class="page">殿堂</h1>
+  </div>
+</div>
+<div class="rule"><span>1大会で<b>優勝</b>と<b>準優勝</b>を独占 ＝ <b>ジャック</b></span><span>ジャック {{ required }} 回で<b>殿堂入り</b></span><span>殿堂入り後は受賞できません</span></div>
+
+{% if members %}
+<div class="plaques">
+  {% for m in members %}
+  <article class="plaque">
+    <div class="crown">♛</div>
+    <div class="label">HALL OF FAME</div>
+    <div class="name gold-text">{{ m.speaker }}</div>
+    <div class="since">{{ m.inducted_on|date:"Y.m.d" }} 殿堂入り · ジャック {{ m.jacks|length }} 回</div>
+    <ul class="jacks">
+      {% for d in m.jacks %}<li><a href="{% url 'contests:contest_detail' d|date:'Y-m-d' %}">{{ d|date:"Y.m.d" }}</a></li>{% endfor %}
+    </ul>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <p class="word">♛</p>
+  <p>まだ殿堂入りした人はいません。</p>
+</div>
+{% endif %}
+
+{% if contenders %}
+<h2 class="sec">殿堂入りまであと少し</h2>
+<div class="stack">
+  {% for c in contenders %}
+  <div class="card contender">
+    <span class="n">{{ c.speaker }}</span>
+    <span style="color:var(--muted);font-size:.9rem">ジャック {{ c.jacks|length }} 回（最新 {{ c.jacks|last|date:"Y.m.d" }}）</span>
+    <span class="left">あと {{ c.remaining }} 回</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

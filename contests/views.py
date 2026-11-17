@@ -6,6 +6,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from . import hall
 from .forms import AwardForm, ContestForm, EntryForm, ThemeSongForm
 from .models import Award, Contest, Entry, ThemeSong
 
@@ -25,6 +26,9 @@ def contest_list(request):
         contests = contests.filter(
             Q(entries__word__icontains=q) | Q(entries__speaker__icontains=q) | Q(entries__description__icontains=q)
         ).distinct()
+    contests = list(contests)
+    for c in contests:
+        c.jackers = hall.jackers_in(c.entries.all())
     return render(
         request,
         "contests/contest_list.html",
@@ -47,10 +51,21 @@ def contest_create(request):
 
 def contest_detail(request, date):
     contest = _contest_by_date(date)
+    entries = list(contest.entries.select_related("award"))
+    jackers = hall.jackers_in(entries)
+    inducted = []
+    if jackers:
+        # この大会のジャックで殿堂入りした人（＝この日がちょうど規定回数目のジャック）
+        jacks = hall.all_jacks()
+        inducted = [
+            name for name in jackers
+            if len(jacks.get(name, [])) >= hall.HALL_OF_FAME_JACKS
+            and jacks[name][hall.HALL_OF_FAME_JACKS - 1] == contest.date
+        ]
     return render(
         request,
         "contests/contest_detail.html",
-        {"contest": contest, "entries": contest.entries.select_related("award")},
+        {"contest": contest, "entries": entries, "jackers": jackers, "inducted": inducted},
     )
 
 
@@ -74,7 +89,7 @@ def contest_delete(request, date):
 
 def entry_create(request, date):
     contest = _contest_by_date(date)
-    form = EntryForm(request.POST or None, request.FILES or None)
+    form = EntryForm(request.POST or None, request.FILES or None, contest=contest)
     if request.method == "POST" and form.is_valid():
         entry = form.save(commit=False)
         entry.contest = contest
@@ -88,7 +103,7 @@ def entry_create(request, date):
 
 def entry_edit(request, pk):
     entry = get_object_or_404(Entry, pk=pk)
-    form = EntryForm(request.POST or None, request.FILES or None, instance=entry)
+    form = EntryForm(request.POST or None, request.FILES or None, instance=entry, contest=entry.contest)
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, f"「{entry.word}」を更新しました。")
@@ -181,4 +196,28 @@ def ranking(request):
         .annotate(total=Count("id"), wins=Count("id", filter=Q(award__order=1)))
         .order_by("-total", "-wins", "speaker")
     )
+    jacks = hall.all_jacks()
+    speakers = list(speakers)
+    for s in speakers:
+        s["jacks"] = len(jacks.get(s["speaker"].strip(), []))
+        s["hof"] = s["jacks"] >= hall.HALL_OF_FAME_JACKS
     return render(request, "contests/ranking.html", {"speakers": speakers})
+
+
+def hall_of_fame(request):
+    jacks = hall.all_jacks()
+    members = hall.hall_of_fame(jacks)
+    # 殿堂入りまであと少しの人（ジャック 1 回以上・未殿堂入り）
+    contenders = sorted(
+        (
+            {"speaker": name, "jacks": dates, "remaining": hall.HALL_OF_FAME_JACKS - len(dates)}
+            for name, dates in jacks.items()
+            if len(dates) < hall.HALL_OF_FAME_JACKS
+        ),
+        key=lambda c: (c["remaining"], c["jacks"][-1]),
+    )
+    return render(
+        request,
+        "contests/hall_of_fame.html",
+        {"members": members, "contenders": contenders, "required": hall.HALL_OF_FAME_JACKS},
+    )

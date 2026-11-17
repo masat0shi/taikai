@@ -1,6 +1,7 @@
 from django import forms
 from django.conf import settings
 
+from . import hall
 from .models import Award, Contest, Entry, ThemeSong
 
 DATE_INPUT = forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
@@ -25,13 +26,30 @@ class EntryForm(forms.ModelForm):
         fields = ["award", "word", "speaker", "description", "image"]
         widgets = {"description": forms.Textarea(attrs={"rows": 3})}
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, contest, **kwargs):
         super().__init__(*args, **kwargs)
+        self.contest = contest
         qs = Award.objects.filter(is_active=True)
         if self.instance.pk:  # 編集時は使用停止になった賞も選べるように
             qs = qs | Award.objects.filter(pk=self.instance.award_id)
         self.fields["award"].queryset = qs.distinct()
         self.fields["image"].help_text = f"{settings.MAX_IMAGE_SIZE // (1024 * 1024)}MB まで"
+
+        # この大会より前に殿堂入りした人は受賞できない
+        self.retired = {
+            m["speaker"]: m["inducted_on"] for m in hall.hall_of_fame() if m["inducted_on"] < contest.date
+        }
+        if self.retired:
+            self.fields["speaker"].help_text = "殿堂入りのため受賞できない人：" + "・".join(self.retired)
+
+    def clean_speaker(self):
+        speaker = self.cleaned_data["speaker"].strip()
+        inducted_on = self.retired.get(speaker)
+        if inducted_on:
+            raise forms.ValidationError(
+                f"{speaker} さんは {inducted_on:%Y.%m.%d} に殿堂入りしているため、それ以降の大会では受賞できません。"
+            )
+        return speaker
 
     def clean_image(self):
         image = self.cleaned_data.get("image")

@@ -22,4 +22,5 @@ urlpatterns = [
     path("awards/<int:pk>/edit/", views.award_edit, name="award_edit"),
     path("awards/<int:pk>/delete/", views.award_delete, name="award_delete"),
     path("ranking/", views.ranking, name="ranking"),
+    path("hall-of-fame/", views.hall_of_fame, name="hall_of_fame"),
 ]

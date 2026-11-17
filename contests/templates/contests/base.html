@@ -125,6 +125,11 @@
     .table-wrap { overflow-x:auto; }
 
     footer.site { border-top:1px solid var(--line); color:var(--dim); font-size:.75rem; letter-spacing:.3em; text-align:center; padding:2rem 0 3rem; font-family:var(--latin); }
+    /* ジャック・殿堂入りタグ */
+    .tag { display:inline-flex; align-items:center; gap:.3rem; font-family:var(--latin); font-weight:600; font-size:.72rem;
+           letter-spacing:.2em; padding:.12rem .65rem; border-radius:999px; vertical-align:middle; white-space:nowrap; }
+    .tag.jack { color:var(--gold-hi); border:1px solid var(--gold); background:rgba(216,180,90,.1); }
+    .tag.hof { color:#1a1306; background:linear-gradient(180deg,var(--gold-hi),var(--gold) 60%,#b98f35); }
     {% block extra_style %}{% endblock %}
   </style>
 </head>
@@ -137,6 +142,7 @@
       <a href="{% url 'contests:contest_list' %}" class="{% if u == 'contest_list' or 'contest_' in u or 'entry_' in u %}on{% endif %}">大会</a>
       <a href="{% url 'contests:song_list' %}" class="{% if 'song_' in u %}on{% endif %}">テーマソング</a>
       <a href="{% url 'contests:ranking' %}" class="{% if u == 'ranking' %}on{% endif %}">ランキング</a>
+      <a href="{% url 'contests:hall_of_fame' %}" class="{% if u == 'hall_of_fame' %}on{% endif %}">殿堂</a>
       <a href="{% url 'contests:award_list' %}" class="{% if 'award_' in u %}on{% endif %}">賞の設定</a>
     </nav>
     {% endwith %}

@@ -26,6 +26,14 @@
   .others img { display:block; width:100%; max-height:240px; object-fit:cover; border-radius:10px; margin-top:.9rem; border:1px solid var(--line); }
   .others .tools { margin-top:1rem; }
   .danger-zone { text-align:center; margin-top:3rem; }
+
+  .feat { text-align:center; margin:0 0 1.5rem; padding:1.1rem 1rem; border-radius:16px;
+          border:1px solid rgba(216,180,90,.45); background:rgba(216,180,90,.07); }
+  .feat .big { font-family:var(--latin); font-weight:600; font-size:clamp(1.6rem,6vw,2.4rem); letter-spacing:.35em; line-height:1.2; }
+  .feat .who { font-family:var(--mincho); font-weight:800; font-size:1.1rem; margin-top:.3rem; }
+  .feat .sub { color:var(--muted); font-size:.85rem; }
+  .feat.hof { background:radial-gradient(400px 160px at 50% 0%, rgba(216,180,90,.3), transparent 70%), var(--surface); border-color:var(--gold); }
+  .feat.hof a { color:var(--gold-hi); text-decoration:underline; text-underline-offset:3px; }
 {% endblock %}
 {% block content %}
 {% with d=contest.date|date:'Y-m-d' %}
@@ -38,6 +46,20 @@
     <a class="btn ghost" href="{% url 'contests:contest_edit' d %}">大会を編集</a>
   </div>
 </section>
+
+{% if inducted %}
+  <div class="feat hof">
+    <div class="big gold-text">♛ HALL OF FAME</div>
+    <div class="who">{{ inducted|join:"・" }} 殿堂入り！</div>
+    <div class="sub">ジャック通算 2 回達成 · <a href="{% url 'contests:hall_of_fame' %}">殿堂を見る</a></div>
+  </div>
+{% elif jackers %}
+  <div class="feat">
+    <div class="big gold-text">JACK!</div>
+    <div class="who">{{ jackers|join:"・" }}</div>
+    <div class="sub">優勝・準優勝を独占</div>
+  </div>
+{% endif %}
 
 {% for e in entries %}
   {% if forloop.first %}

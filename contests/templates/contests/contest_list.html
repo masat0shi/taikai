@@ -38,6 +38,7 @@
     <div class="date">
       <span class="d">{{ contest.date|date:"Y.m.d" }}</span>
       <span class="w">{{ contest.date|date:"D" }}</span>
+      {% if contest.jackers %}<span class="tag jack">JACK · {{ contest.jackers|join:"・" }}</span>{% endif %}
     </div>
     {% if entries %}
       {% with top=entries.0 %}
