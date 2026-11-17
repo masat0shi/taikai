@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -18,7 +19,10 @@ from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / '.env')
+# テスト実行時は .env を読まない（Supabase ではなく手元の SQLite・ローカル保存で動かす）
+TESTING = sys.argv[1:2] == ['test']
+if not TESTING:
+    load_dotenv(BASE_DIR / '.env')
 
 # 環境変数が無いときはローカル開発用の設定になる
 DEBUG = os.environ.get('DJANGO_DEBUG', '1' if not os.environ.get('VERCEL') else '0') == '1'
