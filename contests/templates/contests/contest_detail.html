@@ -1,0 +1,43 @@
+{% extends "contests/base.html" %}
+{% block title %}{{ contest.date|date:"Y-m-d" }}{% endblock %}
+{% block content %}
+<div class="row">
+  <h1>{{ contest.date|date:"Y年n月j日（D）" }} の流行語大会</h1>
+</div>
+<div class="row" style="margin-bottom:1rem">
+  <a class="btn" href="{% url 'contests:entry_create' contest.date|date:'Y-m-d' %}">＋ 流行語を登録</a>
+  <a class="btn ghost" href="{% url 'contests:contest_edit' contest.date|date:'Y-m-d' %}">大会を編集</a>
+  <form class="inline spacer" method="post" action="{% url 'contests:contest_delete' contest.date|date:'Y-m-d' %}"
+        onsubmit="return confirm('この大会と登録された流行語をすべて削除しますか？')">
+    {% csrf_token %}<button class="btn danger">大会を削除</button>
+  </form>
+</div>
+
+{% with song=contest.theme_song %}{% if song %}
+  <div class="card song">
+    <span class="muted">🎵 この日のテーマソング</span><br>
+    <strong>{% if song.url %}<a href="{{ song.url }}" target="_blank" rel="noopener">{{ song }}</a>{% else %}{{ song }}{% endif %}</strong>
+  </div>
+{% endif %}{% endwith %}
+
+{% if contest.note %}<p>{{ contest.note|linebreaksbr }}</p>{% endif %}
+
+{% for e in entries %}
+  <div class="card entry">
+    <span class="badge o{{ e.award.order }}">{{ e.award }}</span>
+    <div class="word">「{{ e.word }}」</div>
+    <div class="muted">言った人：{{ e.speaker }}</div>
+    {% if e.description %}<p>{{ e.description|linebreaksbr }}</p>{% endif %}
+    {% if e.image %}<a href="{{ e.image.url }}" target="_blank"><img src="{{ e.image.url }}" alt="{{ e.word }}"></a>{% endif %}
+    <div class="row" style="margin-top:.5rem">
+      <a class="btn ghost" href="{% url 'contests:entry_edit' e.pk %}">編集</a>
+      <form class="inline" method="post" action="{% url 'contests:entry_delete' e.pk %}"
+            onsubmit="return confirm('「{{ e.word|escapejs }}」を削除しますか？')">
+        {% csrf_token %}<button class="btn danger">削除</button>
+      </form>
+    </div>
+  </div>
+{% empty %}
+  <p class="muted">まだ流行語が登録されていません。</p>
+{% endfor %}
+{% endblock %}

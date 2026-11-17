@@ -1,0 +1,36 @@
+{% extends "contests/base.html" %}
+{% block title %}大会一覧{% endblock %}
+{% block content %}
+{% if current_song %}
+  <div class="card song">
+    <span class="muted">🎵 現在のテーマソング</span><br>
+    <strong>{% if current_song.url %}<a href="{{ current_song.url }}" target="_blank" rel="noopener">{{ current_song }}</a>{% else %}{{ current_song }}{% endif %}</strong>
+  </div>
+{% endif %}
+
+<div class="row">
+  <h1>大会一覧</h1>
+  <a class="btn spacer" href="{% url 'contests:contest_create' %}">＋ 大会を作成</a>
+</div>
+
+<form method="get" class="row" style="margin-bottom:1rem">
+  <input type="search" name="q" value="{{ q }}" placeholder="言葉・言った人・内容で検索" style="flex:1">
+  <button class="btn ghost">検索</button>
+</form>
+
+{% for contest in contests %}
+  <div class="card">
+    <a href="{{ contest.get_absolute_url }}"><strong>{{ contest.date|date:"Y年n月j日（D）" }}</strong></a>
+    {% if contest.note %}<span class="muted">— {{ contest.note|truncatechars:40 }}</span>{% endif %}
+    <ul>
+      {% for e in contest.entries.all %}
+        <li><span class="badge o{{ e.award.order }}">{{ e.award }}</span> 「{{ e.word }}」 <span class="muted">— {{ e.speaker }}</span></li>
+      {% empty %}
+        <li class="muted">まだ流行語が登録されていません</li>
+      {% endfor %}
+    </ul>
+  </div>
+{% empty %}
+  <p class="muted">{% if q %}「{{ q }}」に一致する大会はありません。{% else %}まだ大会がありません。「大会を作成」から始めましょう。{% endif %}</p>
+{% endfor %}
+{% endblock %}

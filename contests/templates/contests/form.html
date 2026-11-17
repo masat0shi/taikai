@@ -1,0 +1,15 @@
+{% extends "contests/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<h1>{{ title }}</h1>
+<div class="card">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="row">
+      <button class="btn">保存</button>
+      {% if back %}<a class="btn ghost" href="{{ back.get_absolute_url }}">キャンセル</a>{% endif %}
+    </div>
+  </form>
+</div>
+{% endblock %}

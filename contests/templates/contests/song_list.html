@@ -1,0 +1,24 @@
+{% extends "contests/base.html" %}
+{% block title %}テーマソング{% endblock %}
+{% block content %}
+<div class="row">
+  <h1>大会テーマソング</h1>
+  <a class="btn spacer" href="{% url 'contests:song_create' %}">＋ テーマソングを登録</a>
+</div>
+{% for s in songs %}
+  <div class="card song">
+    <strong>{% if s.url %}<a href="{{ s.url }}" target="_blank" rel="noopener">{{ s }}</a>{% else %}{{ s }}{% endif %}</strong><br>
+    <span class="muted">{{ s.start_date|date:"Y/n/j" }} 〜 {% if s.end_date %}{{ s.end_date|date:"Y/n/j" }}{% else %}現在{% endif %}</span>
+    {% if s.note %}<p>{{ s.note|linebreaksbr }}</p>{% endif %}
+    <div class="row" style="margin-top:.5rem">
+      <a class="btn ghost" href="{% url 'contests:song_edit' s.pk %}">編集</a>
+      <form class="inline" method="post" action="{% url 'contests:song_delete' s.pk %}"
+            onsubmit="return confirm('このテーマソングを削除しますか？')">
+        {% csrf_token %}<button class="btn danger">削除</button>
+      </form>
+    </div>
+  </div>
+{% empty %}
+  <p class="muted">まだテーマソングが登録されていません。</p>
+{% endfor %}
+{% endblock %}

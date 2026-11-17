@@ -1,0 +1,17 @@
+{% extends "contests/base.html" %}
+{% block title %}ランキング{% endblock %}
+{% block content %}
+<h1>受賞回数ランキング（言った人別）</h1>
+<div class="card">
+  <table>
+    <thead><tr><th>順位</th><th>言った人</th><th>受賞回数</th></tr></thead>
+    <tbody>
+    {% for s in speakers %}
+      <tr><td>{{ forloop.counter }}</td><td>{{ s.speaker }}</td><td>{{ s.total }}</td></tr>
+    {% empty %}
+      <tr><td colspan="3" class="muted">まだデータがありません。</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
